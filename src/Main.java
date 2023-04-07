@@ -17,6 +17,7 @@ public class Main {
         int numOfDays = 0;
         boolean rightMonth = false;
 
+        // setting up correct month to make schedule on
         while (!rightMonth){
 
             System.out.println("Enter month u want to make schedule on (1, 2,...11, 12) : ");
@@ -34,12 +35,14 @@ public class Main {
                 System.out.println("You entered wrong number");
             }
         }
+
         // creating list of workers
         ArrayList<Worker> workers = new ArrayList<>();
 
         boolean isRunning = true;
         while (isRunning) {
 
+            //main menu layout
             System.out.println();
             System.out.println("Menu:");
             System.out.println();
@@ -49,6 +52,7 @@ public class Main {
             System.out.println("4. Delete worker from list");
             System.out.println("5. Change month or a year u want to make schedule on");
             System.out.println("6. Add free days for worker");
+            System.out.println("7. Change number of shifts per month");
             System.out.println("9. Quit");
 
             int choice = Integer.parseInt(bufferedReader.readLine());
@@ -62,7 +66,14 @@ public class Main {
                     for (int i = 0; i < numberOfWorkers; i++) {
                         System.out.println("Enter name :");
                         String name = bufferedReader.readLine();
-                        Worker worker = new Worker(name);
+                        System.out.println("Enter number of shifts for this worker per month: ");
+                        String shifts;
+
+                        while (!IsValidNumberOfShifts(shifts = bufferedReader.readLine())){
+                            System.out.println("You must enter number between 1 and 62");
+                        }
+
+                        Worker worker = new Worker(name, Integer.parseInt(shifts));
                         workers.add(worker);
                     }
                     System.out.println("Your workers : ");
@@ -71,7 +82,7 @@ public class Main {
                 }
                 // See free days of a worker
                 case 2 -> {
-                    System.out.println("Witch worker You want see free days ?");
+                    System.out.println("Which worker You want see free days ?");
                     for (int i = 1; i < workers.size()+1; i++) {
                         System.out.println(i +". " + workers.get(i-1));
                     }
@@ -161,7 +172,7 @@ public class Main {
                         System.out.println("You need to add workers first!");
                         break;
                     }
-                    System.out.println("Witch worker You want to delete ?");
+                    System.out.println("Which worker You want to delete ?");
                     for (int i = 1; i < workers.size()+1; i++) {
                         System.out.println(i +". " + workers.get(i-1));
                     }
@@ -213,7 +224,7 @@ public class Main {
                 }
                 //add free days for a worker
                 case 6 ->{
-                    System.out.println("Witch worker You want to add free days ?");
+                    System.out.println("Which worker You want to add free days ?");
                     for (int i = 1; i < workers.size()+1; i++) {
                         System.out.println(i +". " + workers.get(i-1));
                     }
@@ -222,7 +233,7 @@ public class Main {
                     int workerToDayOff = Integer.parseInt(bufferedReader.readLine());
                     if (workerToDayOff == -1){
                         break;
-                    } else if (workerToDayOff >= 0 && workerToDayOff <= workers.size()) {
+                    } else if (workerToDayOff > 0 && workerToDayOff <= workers.size()) {
                         Worker chosenWorker =  workers.get(workerToDayOff - 1);
                         System.out.println("You choose worker : " + chosenWorker.getName());
                         System.out.println("Enter free days for him, each on new line:");
@@ -247,6 +258,35 @@ public class Main {
                         System.out.println("Wrong number entered");
                     }
                 }
+                // changing number of shifts of a worker
+                case 7 -> {
+                    System.out.println("Which worker You want to change number of shifts ?");
+                    for (int i = 1; i < workers.size()+1; i++) {
+                        System.out.println(i +". " + workers.get(i-1));
+                    }
+                    System.out.println("Enter his number or if You want to go back enter [-1] : ");
+
+                    int workerChangeShifts = Integer.parseInt(bufferedReader.readLine());
+                    if (workerChangeShifts == -1){
+                        break;
+                    } else if (workerChangeShifts > 0 && workerChangeShifts <= workers.size()) {
+                        Worker chosenWorker =  workers.get(workerChangeShifts - 1);
+                        System.out.println("You choose worker : " + chosenWorker.getName());
+                        System.out.println("Current number of shifts is " + chosenWorker.getShiftsPerMonth());
+                        System.out.println("Enter new number of shifts :");
+
+                        int newShifts;
+
+                        while ((newShifts = Integer.parseInt(bufferedReader.readLine())) > 62){
+                            System.out.println("You can't set more than 62 shifts per month, it's not humane!");
+                        }
+                        chosenWorker.setShiftsPerMonth(newShifts);
+
+                        System.out.println("You set " +  newShifts + " shifts for " + chosenWorker.getName());
+                    }else {
+                        System.out.println("Wrong number entered");
+                    }
+                }
                 // quiting program
                 case 9 -> isRunning = false;
                 //default answer if number given doesn't exist
@@ -264,11 +304,21 @@ public class Main {
                 return worker;
             }
         }
-        return new Worker("NO WORKERS");
+        return new Worker("NO WORKERS", 0);
     }
     public static void popWorker(ArrayList<Worker> workers){
         Worker temp = workers.remove(0);
         workers.add(temp);
+    }
+    public static boolean IsValidNumberOfShifts(String numInString){
+        int num;
+        try {
+            num = Integer.parseInt(numInString);
+        }catch (NumberFormatException e ){
+            System.out.println("Not a number, try again");
+            return false;
+        }
+        return num >0 && num <63;
     }
 
 }
