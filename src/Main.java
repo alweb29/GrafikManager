@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -61,11 +63,18 @@ public class Main {
                 case 1 -> {
 
                     System.out.println("Enter number of workers : ");
-                    int numberOfWorkers = Integer.parseInt(bufferedReader.readLine());
 
+                    String tryNumberOfWorkers;
+                    while (!IsValidNumber(tryNumberOfWorkers = bufferedReader.readLine())){
+                        System.out.println("You must enter number ");
+                    }
+
+                    int numberOfWorkers = Integer.parseInt(tryNumberOfWorkers);
                     for (int i = 0; i < numberOfWorkers; i++) {
+
                         System.out.println("Enter name :");
                         String name = bufferedReader.readLine();
+
                         System.out.println("Enter number of shifts for this worker per month: ");
                         String shifts;
 
@@ -75,6 +84,8 @@ public class Main {
 
                         Worker worker = new Worker(name, Integer.parseInt(shifts));
                         workers.add(worker);
+
+                        System.out.printf("You added worker : " + name + ", who has " + shifts + " shift to work this month \n");
                     }
                     System.out.println("Your workers : ");
                     System.out.println(workers);
@@ -151,18 +162,77 @@ public class Main {
                     }else {
                         break;
                     }
-                    //add worker to schedule of days
-                    for (int i = 0; i < numOfDays; i++) {
-                        Day day = new Day(i +1);
-                        days.add(day);
-                        for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
-                            day.addWorkerTo1Shift(getNextWorkerFromList(workers, i+1, 1));
+
+                    System.out.println("Enter way u want to generate schedule with : ");
+                    System.out.println("1. Based on free days, rotation");
+                    System.out.println("2. Based on number of shifts they have to work this month");
+
+                    int algorithmChoice = Integer.parseInt(bufferedReader.readLine());
+                    if (algorithmChoice == 1){ // schedule based on rotation
+
+                        //add worker to schedule of days
+                        for (int i = 0; i < numOfDays; i++) {
+                            Day day = new Day(i +1);
+                            days.add(day);
+                            for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
+                                day.addWorkerTo1Shift(getNextWorkerFromList(workers, i+1, 1));
+                            }
+                            for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
+                                day.addWorkerTo2Shift(getNextWorkerFromList(workers, i+1, 2));
+                            }
                         }
-                        for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
-                            day.addWorkerTo2Shift(getNextWorkerFromList(workers, i+1, 2));
+                    }else {// schedule based on num of shifts
+
+                        ArrayList<Worker> tempWorkers = workers;
+                        // can't have workers with the same name !
+                        HashMap<Worker, Integer> shiftsInThisMonth = new HashMap<>();
+
+                        for (Worker worker: workers){
+                            shiftsInThisMonth.put(worker, 0);
+                        }
+
+                        for (int i = 0; i < numOfDays; i++) {
+                            Day day = new Day(i +1);
+                            days.add(day);
+                            for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
+                                Worker worker = getNextWorkerFromList(tempWorkers, i+1, 1);
+                                day.addWorkerTo1Shift(worker);
+                                // save num of shift for this month
+                                int numOfShifts = shiftsInThisMonth.get(worker);
+                                shiftsInThisMonth.put(worker, ++numOfShifts);
+                                //check if norm for this month is reached
+                                checkShifts(numOfShifts, worker, tempWorkers);
+                            }
+                            for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
+                                Worker worker = getNextWorkerFromList(tempWorkers, i+1, 2);
+                                day.addWorkerTo2Shift(worker);
+                                int numOfShifts = shiftsInThisMonth.get(worker);
+                                shiftsInThisMonth.put(worker, ++numOfShifts);
+                                checkShifts(numOfShifts, worker, tempWorkers);
+                            }
                         }
                     }
                     System.out.println(days);
+                    //ask if You want to save this to the file
+                    System.out.println("Do You want to save this to the file ? ");
+                    System.out.println("1. Yes");
+                    System.out.println("2. No");
+
+                    int fileSaving = Integer.parseInt(bufferedReader.readLine());
+                    if (fileSaving == 1){
+
+                        System.out.println("Enter name of a file :");
+                        String filename = bufferedReader.readLine() + ".txt";
+                        FileWriter fileWriter = new FileWriter(filename);
+
+                        for (Day day : days){
+                            fileWriter.write(day.toString());
+                        }
+                        fileWriter.close();
+                        Path path = Path.of(filename);
+                        System.out.println("Your file has been saved as " + filename + " at path : \n " + path.toAbsolutePath());
+
+                    }
                 }
 
                 // deleting worker from the list
@@ -298,7 +368,7 @@ public class Main {
 
         // if not free get him to work!
         for (Worker worker:workers) {
-            if (!worker.getFreeDays().contains(day)) {
+            if (!worker.getFreeDays().contains(day) ) {
                 popWorker(workers);
                 worker.addDayOfWork(day, shift);
                 return worker;
@@ -319,6 +389,21 @@ public class Main {
             return false;
         }
         return num >0 && num <63;
+    }
+    public static boolean IsValidNumber(String numInString){
+        int num;
+        try {
+            num = Integer.parseInt(numInString);
+        }catch (NumberFormatException e ){
+            System.out.println("Not a number, try again");
+            return false;
+        }
+        return num >0 ;
+    }
+    public static void checkShifts(int days, Worker worker, ArrayList<Worker> tempWorkers){
+        if (days >= worker.getShiftsPerMonth()){
+            tempWorkers.remove(worker);
+        }
     }
 
 }

@@ -19,6 +19,6 @@ public class Day {
 
     @Override
     public String toString() {
-        return "[Day: " + number  + "]\n" + "[Shift 1 workers : " + workersOf1Shift + "]  [Shift 2 workers : " + workersOf2Shift + "] \n";
+        return "\n[Day: " + number  + "]\n" + "[Shift 1 workers : " + workersOf1Shift + "]  [Shift 2 workers : " + workersOf2Shift + "] \n";
     }
 }
