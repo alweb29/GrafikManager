@@ -186,6 +186,9 @@ public class Main {
                         ArrayList<Worker> tempWorkers = workers;
                         // can't have workers with the same name !
                         HashMap<Worker, Integer> shiftsInThisMonth = new HashMap<>();
+                        //empty worker if no more available
+                        Worker emptyWorker = new Worker("EMPTY", 900);
+                        shiftsInThisMonth.put(emptyWorker, 100);
 
                         for (Worker worker: workers){
                             shiftsInThisMonth.put(worker, 0);
@@ -195,16 +198,31 @@ public class Main {
                             Day day = new Day(i +1);
                             days.add(day);
                             for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
-                                Worker worker = getNextWorkerFromList(tempWorkers, i+1, 1);
+
+                                Worker worker;
+                                if (tempWorkers.isEmpty()){
+                                    worker = emptyWorker;
+                                }else {
+                                    worker = getNextWorkerFromList(tempWorkers, i+1, 1);
+                                }
+
                                 day.addWorkerTo1Shift(worker);
                                 // save num of shift for this month
                                 int numOfShifts = shiftsInThisMonth.get(worker);
+
                                 shiftsInThisMonth.put(worker, ++numOfShifts);
                                 //check if norm for this month is reached
                                 checkShifts(numOfShifts, worker, tempWorkers);
                             }
                             for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
-                                Worker worker = getNextWorkerFromList(tempWorkers, i+1, 2);
+
+                                Worker worker;
+                                if (tempWorkers.isEmpty()){
+                                    worker = emptyWorker;
+                                }else {
+                                    worker = getNextWorkerFromList(tempWorkers, i+1, 2);
+                                }
+
                                 day.addWorkerTo2Shift(worker);
                                 int numOfShifts = shiftsInThisMonth.get(worker);
                                 shiftsInThisMonth.put(worker, ++numOfShifts);
@@ -374,7 +392,7 @@ public class Main {
                 return worker;
             }
         }
-        return new Worker("NO WORKERS", 0);
+        return new Worker("NO MORE WORKERS", 900);
     }
     public static void popWorker(ArrayList<Worker> workers){
         Worker temp = workers.remove(0);
