@@ -13,6 +13,11 @@ public class Month {
     private int numberOfDaysInMonth;
     private List<Day> days;
 
+    public Month(int monthNumber) {
+        MonthNumber = monthNumber;
+        days = new ArrayList<>();
+    }
+
     public int getNumberOfDaysInMonth() {
         return numberOfDaysInMonth;
     }
@@ -32,11 +37,6 @@ public class Month {
     public void setMonthNumber(int monthNumber) {
         MonthNumber = monthNumber;
         SetNumberOfDaysInMonth(monthNumber);
-    }
-
-    public Month(int monthNumber) {
-        MonthNumber = monthNumber;
-        days = new ArrayList<>();
     }
     private void SetNumberOfDaysInMonth(int monthNumber ){
         MenuManager.calendar.set(Calendar.MONTH, monthNumber);

@@ -2,9 +2,11 @@ package app;
 import java.io.IOException;
 
 public class Main {
+
     public static void main(String[] args) throws IOException {
 
-        Month month = new Month(30);
+
+        Month month = new Month(0);
         // setting up correct month to make schedule on
         MenuManager.SetMonthNumber(month);
 
@@ -24,7 +26,7 @@ public class Main {
                 }
                 // See free days of a worker
                 case 2 -> {
-                    MenuManager.SetFreeDaysForWorker();
+                    MenuManager.SeeFreeDaysForWorkerOrDeleteThem();
                 }
                 // generate schedule
                 case 3 -> {

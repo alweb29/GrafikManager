@@ -7,6 +7,7 @@ public class Worker {
     private final String name;
     private int shiftsPerMonth;
     private ArrayList<Integer> freeDays;
+
     // day and shift
     public HashMap<Integer, Integer> daysOfWork;
 

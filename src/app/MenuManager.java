@@ -15,50 +15,29 @@ import java.util.HashMap;
 public class MenuManager {
     private static final int numOfDays = 0;
     protected static final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    public static final int MAX_NUMBER_OF_SHIFTS = 62;
     protected static Calendar calendar = Calendar.getInstance();
     protected static Date date;
-    private static Month currentMonth;
 
-    private static ArrayList<Worker> workers = new ArrayList<>();
-
-    public static Month getCurrentMonth() {
-        return currentMonth;
-    }
-
-    public static void setCurrentMonth(Month currentMOnth) {
-        MenuManager.currentMonth = currentMOnth;
-    }
+    private static final ArrayList<Worker> workers = new ArrayList<>();
 
     public static int getNumOfDays() {
         return numOfDays;
     }
 
     public static void SetMonthNumber(Month month) throws IOException {
-
-        boolean rightMonth = false;
-        int monthNum;
-        while (!rightMonth){
-
-            System.out.println("Enter month u want to make schedule on (1, 2,...11, 12) : ");
-
-            monthNum = Integer.parseInt(reader.readLine()) - 1;
-
-            if (monthNum >= 0 && monthNum <= 11){
-                rightMonth = true;
-                month.setMonthNumber(monthNum);
-            }else {
-                System.out.println("You entered wrong number");
-            }
-        }
+        System.out.println("Enter month u want to make schedule on (1, 2,..., 11, 12) : ");
+        int monthNum = GetNumberFromStringInputInRange(1, 12);
+        month.setMonthNumber(monthNum - 1);
     }
     public static void ChangeMonthAndYear(Month month) throws IOException {
-        setCurrentMonth(month);
+        SetMonthNumber(month);
         System.out.println("Do you want to change year too ? ");
         System.out.println("1. yes");
         System.out.println("2. no");
 
-        int answer = Integer.parseInt(reader.readLine());
-        if (answer == 1){
+        String answer = reader.readLine();
+        if (answer.equals("1")){
             System.out.println("Please enter year :");
             int year = Integer.parseInt(reader.readLine());
             calendar.set(Calendar.YEAR , year);
@@ -71,7 +50,7 @@ public class MenuManager {
     public static void SetWorkersList() throws IOException {
         System.out.println("Enter number of workers : ");
 
-        int numberOfWorkers = GetNumberFromStringInputInRange(0, 100);
+        int numberOfWorkers = GetNumberFromStringInputInRange(1, 100);
         for (int i = 0; i < numberOfWorkers; i++) {
             AddNewWorkerToList(workers);
         }
@@ -85,51 +64,27 @@ public class MenuManager {
         String name = reader.readLine();
 
         System.out.println("Enter number of shifts for this worker per month: ");
-        String shifts;
 
-        while (!IsValidNumberOfShifts(shifts = reader.readLine())){
-            System.out.println("You must enter number between 1 and 62");
-        }
+        int shifts = GetNumberFromStringInputInRange(1, 62);
 
-        Worker worker = new Worker(name, Integer.parseInt(shifts));
+        Worker worker = new Worker(name, shifts);
         workers.add(worker);
         System.out.printf("You added worker : " + name + ", who has " + shifts + " shift to work this month \n");
     }
     public static void GenerateSchedule() throws IOException {
+
         if (workers.isEmpty()) {
-            System.out.println("Please enter number of workers and days first.");
+            System.out.println("Please enter number of workers first.");
+            return;
+        }
+        //set number of people on each shift
+        int [][] numberOfPeopleOnShift;
+        numberOfPeopleOnShift = SetNumberOfPeopleOnShift();
+        if (numberOfPeopleOnShift == null){
             return;
         }
 
-        int [][] numOfpplOnShift = new int[MenuManager.getNumOfDays()][2];
-        ArrayList<Day> days = new ArrayList<>(MenuManager.getNumOfDays());
-
-        //enter number of people on each shift
-        System.out.println("What you want to do :");
-        System.out.println("1. enter number of people on each shift by hand");
-        System.out.println("2. enter number of people on each shift for all");
-        System.out.println("3. back to menu");
-
-        int answer = Integer.parseInt(MenuManager.reader.readLine());
-        if (answer == 1){
-            for (int day = 1; day <= MenuManager.getNumOfDays(); day++){
-                System.out.println("app.Day: " + day + " enter number of people on first shift: ");
-                int pplOn1shift = Integer.parseInt(MenuManager.reader.readLine());
-                System.out.println("app.Day: " + day + " enter number of people on second shift: ");
-                int pplOn2shift = Integer.parseInt(MenuManager.reader.readLine());
-                numOfpplOnShift[day-1][0] = pplOn1shift;
-                numOfpplOnShift[day-1][1] = pplOn2shift;
-            }
-        } else if (answer == 2) {
-            System.out.println("Enter number of workers on each shift");
-            int numOfWorkersEachShift = Integer.parseInt(MenuManager.reader.readLine());
-            for (int[] day : numOfpplOnShift){
-                day[0] = numOfWorkersEachShift;
-                day[1] = numOfWorkersEachShift;
-            }
-        }else {
-            return;
-        }
+        ArrayList<Day> days = new ArrayList<>(getNumOfDays());
 
         System.out.println("Enter way u want to generate schedule with : ");
         System.out.println("1. Based on free days, rotation");
@@ -142,10 +97,10 @@ public class MenuManager {
             for (int i = 0; i < MenuManager.getNumOfDays(); i++) {
                 Day day = new Day(i +1);
                 days.add(day);
-                for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
+                for (int j = 0; j < numberOfPeopleOnShift[i][0]; j++) {
                     day.addWorkerTo1Shift(getNextWorkerFromList(workers, i+1, 1));
                 }
-                for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
+                for (int j = 0; j < numberOfPeopleOnShift[i][1]; j++) {
                     day.addWorkerTo2Shift(getNextWorkerFromList(workers, i+1, 2));
                 }
             }
@@ -165,7 +120,7 @@ public class MenuManager {
             for (int i = 0; i < MenuManager.getNumOfDays(); i++) {
                 Day day = new Day(i +1);
                 days.add(day);
-                for (int j = 0; j < numOfpplOnShift[i][0]; j++) {
+                for (int j = 0; j < numberOfPeopleOnShift[i][0]; j++) {
 
                     Worker worker;
                     if (tempWorkers.isEmpty()){
@@ -182,7 +137,7 @@ public class MenuManager {
                     //check if norm for this month is reached
                     checkShifts(numOfShifts, worker, tempWorkers);
                 }
-                for (int j = 0; j < numOfpplOnShift[i][1]; j++) {
+                for (int j = 0; j < numberOfPeopleOnShift[i][1]; j++) {
 
                     Worker worker;
                     if (tempWorkers.isEmpty()){
@@ -220,20 +175,48 @@ public class MenuManager {
 
         }
     }
+    private static int [][] SetNumberOfPeopleOnShift() throws IOException {
+        int [][] numberOfPeopleOnShift = new int[getNumOfDays()][2];
+        System.out.println("What you want to do :");
+        System.out.println("1. enter number of people on each shift by hand");
+        System.out.println("2. enter number of people on each shift for all");
+        System.out.println("3. back to menu");
 
-    public static void SetFreeDaysForWorker() throws IOException {
+        String answer = reader.readLine();
+        if (answer.equals("1")){
 
-            System.out.println("Which worker You want see free days ?");
-            for (int i = 1; i < workers.size()+1; i++) {
-                System.out.println(i +". " + workers.get(i-1));
+            for (int day = 1; day <= getNumOfDays(); day++){
+                System.out.println("Day: " + day + " enter number of people on first shift: ");
+                int pplOn1shift = Integer.parseInt(reader.readLine());
+                System.out.println("Day: " + day + " enter number of people on second shift: ");
+                int pplOn2shift = Integer.parseInt(reader.readLine());
+                numberOfPeopleOnShift[day-1][0] = pplOn1shift;
+                numberOfPeopleOnShift[day-1][1] = pplOn2shift;
             }
-            System.out.println("Enter his number or if You want to go back enter " +  -1 +" : ");
-            Worker chosenWorker;
+        } else if (answer.equals("2")) {
+            System.out.println("Enter number of workers on each shift");
+            int numOfWorkersEachShift = Integer.parseInt(reader.readLine());
+            for (int[] day : numberOfPeopleOnShift){
+                day[0] = numOfWorkersEachShift;
+                day[1] = numOfWorkersEachShift;
+            }
+        }else {
+            return null;
+        }
+        return numberOfPeopleOnShift;
+    }
 
-            int workerToDayOff = Integer.parseInt(reader.readLine());
-            if (workerToDayOff == -1){
+    public static void SeeFreeDaysForWorkerOrDeleteThem() throws IOException {
+
+            String message = "Which worker You want see free days ?";
+            PrintWorkersWithNumbers_Message(message);
+
+            Worker chosenWorker;
+            int workerToDayOff = GetNumberFromStringInputInRange(-1, workers.size());
+            
+            if (workerToDayOff == -1 || workerToDayOff == 0){
                 return;
-            } else if (workerToDayOff >= 0 && workerToDayOff <= workers.size()) {
+            } else if (workerToDayOff > 0 && workerToDayOff <= workers.size()) {
 
                 chosenWorker = workers.get(workerToDayOff - 1);
                 if (chosenWorker.getDaysOffWork() == null || chosenWorker.getDaysOffWork().isEmpty()){
@@ -250,14 +233,14 @@ public class MenuManager {
             System.out.println("Do you want to delete them or go back ?");
             System.out.println("1. delete");
             System.out.println("2. go to menu");
-            int input = Integer.parseInt(MenuManager.reader.readLine());
+            int input = GetNumberFromStringInputInRange(1, 2);
             if (input == 1){
                 chosenWorker.deleteFreeDays();
                 System.out.println("Free days for worker " + chosenWorker.getName() + " deleted");
             }
 
     }
-///////////////USED for alogrithm
+
     public static Worker getNextWorkerFromList(ArrayList<Worker> workers, int day, int shift){
 
         // if not free get him to work!
@@ -277,11 +260,11 @@ public class MenuManager {
             System.out.println("You need to add workers first!");
             return;
         }
-        System.out.println("Which worker You want to delete ?");
-        for (int i = 1; i < workers.size()+1; i++) {
-            System.out.println(i +". " + workers.get(i-1));
-        }
-        System.out.println("Enter his number or if You want to go back enter " +  -1 +" : ");
+
+        String message = "Which worker You want to delete ?";
+
+        PrintWorkersWithNumbers_Message(message);
+
         int workerToDelete = Integer.parseInt(MenuManager.reader.readLine());
         if (workerToDelete == -1){
             return;
@@ -292,14 +275,18 @@ public class MenuManager {
             System.out.println("Wrong number entered");
         }
     }
-    public static void AddFreeDaysToAWorker() throws IOException {
-        System.out.println("Which worker You want to add free days ?");
+    private static void PrintWorkersWithNumbers_Message(String message){
+        System.out.println(message);
         for (int i = 1; i < workers.size()+1; i++) {
             System.out.println(i +". " + workers.get(i-1));
         }
-        System.out.println("Enter his number or if You want to go back enter [-1] : ");
+        System.out.println("Enter his number or if You want to go back enter '-1' : ");
+    }
+    public static void AddFreeDaysToAWorker() throws IOException {
+        String message = "Which worker You want to add free days ?";
+        PrintWorkersWithNumbers_Message(message);
 
-        int workerToDayOff = Integer.parseInt(MenuManager.reader.readLine());
+        int workerToDayOff = Integer.parseInt(reader.readLine());
         if (workerToDayOff == -1){
             return;
         } else if (workerToDayOff > 0 && workerToDayOff <= workers.size()) {
@@ -312,7 +299,7 @@ public class MenuManager {
             ArrayList<Integer> daysOff = new ArrayList<>();
 
             while (entering){
-                int dayOff = Integer.parseInt(MenuManager.reader.readLine());
+                int dayOff = Integer.parseInt(reader.readLine());
                 if (dayOff > 0 && dayOff <= 31){
                     daysOff.add(dayOff);
                 }else {
@@ -328,13 +315,11 @@ public class MenuManager {
         }
     }
     public static void ChangeNumberOfShiftsOfAWorker() throws IOException {
-        System.out.println("Which worker You want to change number of shifts ?");
-        for (int i = 1; i < workers.size()+1; i++) {
-            System.out.println(i +". " + workers.get(i-1));
-        }
-        System.out.println("Enter his number or if You want to go back enter [-1] : ");
+        String message = "Which worker You want to change number of shifts ?";
 
-        int workerChangeShifts = Integer.parseInt(MenuManager.reader.readLine());
+        PrintWorkersWithNumbers_Message(message);
+
+        int workerChangeShifts = Integer.parseInt(reader.readLine());
         if (workerChangeShifts == -1){
             return;
         } else if (workerChangeShifts > 0 && workerChangeShifts <= workers.size()) {
@@ -343,11 +328,7 @@ public class MenuManager {
             System.out.println("Current number of shifts is " + chosenWorker.getShiftsPerMonth());
             System.out.println("Enter new number of shifts :");
 
-            int newShifts;
-
-            while ((newShifts = Integer.parseInt(MenuManager.reader.readLine())) > 62){
-                System.out.println("You can't set more than 62 shifts per month, it's not humane!");
-            }
+            int newShifts = GetNumberFromStringInputInRange(0, MAX_NUMBER_OF_SHIFTS);
             chosenWorker.setShiftsPerMonth(newShifts);
 
             System.out.println("You set " +  newShifts + " shifts for " + chosenWorker.getName());
@@ -377,21 +358,27 @@ public class MenuManager {
             System.out.println("Not a number, try again");
             return false;
         }
-        return num >0 && num <63;
+        return num > 0 && num < MAX_NUMBER_OF_SHIFTS;
     }
 
     public static int GetNumberFromStringInputInRange(int min, int max) throws IOException {
         String tryNumber;
-        while (!IsValidNumber(tryNumber = reader.readLine())){
-            System.out.println("You must enter number ");
-
-        }
-        while (Integer.parseInt(tryNumber) < min && Integer.parseInt(tryNumber) > max){
-            System.out.println("You must enter number bigger than " + min + " and smaller than " + max);
-            GetNumberFromStringInputInRange(min, max);
-        }
-        return Integer.parseInt(tryNumber);
+        boolean validNumber = false;
+        int num = 0;
+        do {
+            while (!IsValidNumber(tryNumber = reader.readLine())){
+                System.out.println("You must enter a number");
+            }
+            num = Integer.parseInt(tryNumber);
+            if (num < min || num > max){
+                System.out.println("You must enter a number between " + min + " and " + max);
+            } else {
+                validNumber = true;
+            }
+        } while (!validNumber);
+        return num;
     }
+
 
     public static void popWorker(ArrayList<Worker> workers){
         Worker temp = workers.remove(0);
@@ -404,13 +391,12 @@ public class MenuManager {
     }
 
     public static boolean IsValidNumber(String numInString){
-        int num;
         try {
-            num = Integer.parseInt(numInString);
+            int num = Integer.parseInt(numInString);
         }catch (NumberFormatException e ){
             System.out.println("Not a number, try again");
             return false;
         }
-        return num >=0 ;
+        return true;
     }
 }
