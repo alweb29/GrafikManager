@@ -1,20 +1,17 @@
 package app;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 public class Worker {
     private final String name;
+    // Contains number of shifts that this worker has to make this month
     private int shiftsPerMonth;
-    private ArrayList<Integer> freeDays;
-
-    // day and shift
-    public HashMap<Integer, Integer> daysOfWork;
+    private List<Integer> freeDays;
 
     public Worker(String name, int shiftsPerMonth){
         this.name = name;
         this.shiftsPerMonth = shiftsPerMonth;
-        daysOfWork = new HashMap<>();
         freeDays = new ArrayList<>();
     }
 
@@ -22,33 +19,24 @@ public class Worker {
         return name;
     }
 
-    public void setFreeDays(ArrayList<Integer> freeDays) {
+    public void setFreeDays(List<Integer> freeDays) {
         this.freeDays = freeDays;
     }
-    public ArrayList<Integer> getFreeDays(){
-        return freeDays;
-    }
-    @Override
-    public String toString() {
-        return name;
-    }
-
-    public void addDayOfWork(Integer day, Integer shift) {
-        daysOfWork.put(day, shift);
-    }
-
-    public ArrayList<Integer> getDaysOffWork(){
+    public List<Integer> getFreeDays(){
         return freeDays;
     }
     public void deleteFreeDays (){
         freeDays.clear();
     }
-
+    public void setShiftsPerMonth(int shiftsPerMonth) {
+        this.shiftsPerMonth = shiftsPerMonth;
+    }
     public int getShiftsPerMonth() {
         return shiftsPerMonth;
     }
 
-    public void setShiftsPerMonth(int shiftsPerMonth) {
-        this.shiftsPerMonth = shiftsPerMonth;
+    @Override
+    public String toString() {
+        return name;
     }
 }

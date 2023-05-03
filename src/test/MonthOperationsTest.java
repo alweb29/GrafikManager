@@ -1,4 +1,4 @@
-package Test;
+package test;
 
 import app.Month;
 import org.junit.Test;

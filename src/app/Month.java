@@ -1,48 +1,70 @@
 package app;
 
-import app.MenuManager;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class Month {
-    private int MonthNumber;
-    private int numberOfDaysInMonth;
-    private List<Day> days;
+    //{ can be only between 1 and 12 }
+    private int monthNumber;
+    private final int year;
+    private final List<Day> days;
+    private LocalDate date = LocalDate.now();
+    private int numberOfDaysInThisMonth;
+    // Define the desired output format
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMMM/yyyy");
 
     public Month(int monthNumber) {
-        MonthNumber = monthNumber;
+        this.monthNumber = monthNumber;
+        year = date.getYear();
         days = new ArrayList<>();
     }
 
-    public int getNumberOfDaysInMonth() {
-        return numberOfDaysInMonth;
+    public void addDay(Day day) {
+        this.days.add(day);
     }
-
-    public int getMonthNumber() {
-        return MonthNumber;
-    }
+    public Day getDay(Integer dayNumber){return days.get(dayNumber);}
 
     public List<Day> getDays() {
         return days;
     }
 
-    public void setDays(List<Day> days) {
-        this.days = days;
+    public int getMonthNumber() {
+        return monthNumber;
     }
 
+    //change only monthNumber
     public void setMonthNumber(int monthNumber) {
-        MonthNumber = monthNumber;
-        SetNumberOfDaysInMonth(monthNumber);
+        this.monthNumber = monthNumber;
+        int day = date.getDayOfMonth();
+        date = LocalDate.of(year, monthNumber, day);
+        updateNumberOfDaysInThisMonth();
     }
-    private void SetNumberOfDaysInMonth(int monthNumber ){
-        MenuManager.calendar.set(Calendar.MONTH, monthNumber);
-        MenuManager.date = MenuManager.calendar.getTime();
-        DateFormat dateFormat = new SimpleDateFormat("MMM yyyy");
-        System.out.println("Chosen date is : " + dateFormat.format(MenuManager.date));
-        numberOfDaysInMonth = MenuManager.calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+    private void updateNumberOfDaysInThisMonth(){
+        this.numberOfDaysInThisMonth = date.lengthOfMonth();
+    }
+    public int getNumberOfDaysInThisMonth() {
+        return numberOfDaysInThisMonth;
+    }
+
+    //change only year
+    public void setYear(int year) {
+        int day = date.getDayOfMonth();
+        date = LocalDate.of(year, monthNumber, day);
+        updateNumberOfDaysInThisMonth();
+        System.out.println(getFormattedDate());
+    }
+    public String getFormattedDate(){
+        return date.format(formatter);
+    }
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Day day : days){
+            stringBuilder.append(day.toString()).append("\n");
+        }
+        return getFormattedDate() + "\n" + stringBuilder;
     }
 }

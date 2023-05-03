@@ -1,28 +1,33 @@
 package app;
 
-import app.Worker;
-
-import java.util.ArrayList;
-
 public class Day {
-    private int number;
-    private ArrayList<Worker> workersOf1Shift;
-    private ArrayList<Worker> workersOf2Shift;
+    private final int number;
+    private final Shift morningShift;
+    private final Shift afternoonShift;
 
     public Day(int number ){
         this.number = number;
-        workersOf1Shift = new ArrayList<>();
-        workersOf2Shift = new ArrayList<>();
+        morningShift = new Shift(true);
+        afternoonShift = new Shift(false);
     }
     public void addWorkerTo1Shift(Worker worker){
-        this.workersOf1Shift.add(worker);
+        morningShift.addWorker(worker);
     }
     public void addWorkerTo2Shift(Worker worker){
-        this.workersOf2Shift.add(worker);
+        afternoonShift.addWorker(worker);
     }
 
+    public Shift getMorningShift() {
+        return morningShift;
+    }
+
+    public Shift getAfternoonShift() {
+        return afternoonShift;
+    }
+
+    //Prints out number of the day and each shift
     @Override
     public String toString() {
-        return "\n[app.Day: " + number  + "]\n" + "[Shift 1 workers : " + workersOf1Shift + "]  [Shift 2 workers : " + workersOf2Shift + "] \n";
+        return "\n [Day:" + number  + "] \n" + morningShift + "\n" + afternoonShift;
     }
 }

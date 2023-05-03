@@ -1,12 +1,12 @@
-package Test;
+package test;
 
-import Test.ValidNumbersTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         ValidNumbersTest.class,
-        MonthOperationsTest.class
+        MonthOperationsTest.class,
+        ShiftTest.class
         // Add more test classes here
 })
 
